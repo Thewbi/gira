@@ -1,26 +1,16 @@
-import {Transform} from 'class-transformer'
-import {Entity, PrimaryGeneratedColumn, ObjectIdColumn, ObjectID, Column} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
-@Entity()
+@Entity("user")
 export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    // @ObjectIdColumn()
-    // id: ObjectID;
+  @Column()
+  firstName: string;
 
-  //   @ObjectIdColumn()
-  // @Transform((id: ObjectID) => id.toHexString(), {toPlainOnly: true})
-  // id: ObjectID
+  @Column()
+  lastName: string;
 
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @Column()
-    firstName: string;
-
-    @Column()
-    lastName: string;
-
-    @Column()
-    age: number;
-
+  @Column()
+  age: number;
 }

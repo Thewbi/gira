@@ -7,6 +7,8 @@ import { getManager } from "typeorm";
 var userRouter = express.Router();
 
 // Create / Update
+//
+// POST http://localhost:8080/users/create { "firstName": "testFirstname", "lastName": "testLastname", "age": 55 }
 userRouter.post("/create", async function (req, res, next) {
   const user = req.body;
 
@@ -19,6 +21,8 @@ userRouter.post("/create", async function (req, res, next) {
 });
 
 // Retrieve
+//
+// GET http://localhost:8080/users/all
 userRouter.get("/all", async function (req, res, next) {
   // get a repository to perform operations
   const repository = getManager().getRepository(User);
@@ -31,6 +35,8 @@ userRouter.get("/all", async function (req, res, next) {
 });
 
 // Retrieve
+//
+// GET http://localhost:8080/users/1
 userRouter.get("/:id", async function (req, res, next) {
   // get a repository to perform operations
   const repository = getManager().getRepository(User);
@@ -43,6 +49,8 @@ userRouter.get("/:id", async function (req, res, next) {
 });
 
 // Delete
+//
+// DELETE http://localhost:8080/users/delete/1
 userRouter.delete("/delete/:id", async function (req, res, next) {
   // get a repository to perform operations
   const repository = getManager().getRepository(User);
