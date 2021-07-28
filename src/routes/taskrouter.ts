@@ -2,7 +2,7 @@ import express from "express";
 import "reflect-metadata";
 
 import { Project } from "../entity/Project";
-import { Task } from "../entity/Task";
+import { Task, TaskState } from "../entity/Task";
 import { getManager } from "typeorm";
 
 var taskRouter = express.Router();
@@ -22,8 +22,8 @@ taskRouter.post("/create", async function (req, res, next) {
 
   // get a repository to perform operations
   const taskRepository = getManager().getRepository(Task);
-
   const projectRepository = getManager().getRepository(Project);
+
   const projectPromise = projectRepository.findOne(projectId);
   projectPromise.then((project) => {
     if (project == undefined) {
@@ -45,6 +45,7 @@ taskRouter.post("/create", async function (req, res, next) {
         id: -1,
         name: "",
         description: "",
+        state: TaskState.UNKNOWN,
         projects: [],
       };
       tempTask.id = task.id;
@@ -54,6 +55,53 @@ taskRouter.post("/create", async function (req, res, next) {
       console.log("New object after saving: " + JSON.stringify(tempTask));
 
       res.send(tempTask);
+    });
+  });
+});
+
+taskRouter.post("/update", async function (req, res, next) {
+
+  const task = req.body as Task;
+  const projectId = req.query.projectId as string;
+
+  const taskRepository = getManager().getRepository(Task);
+  const projectRepository = getManager().getRepository(Project);
+
+  const projectPromise = projectRepository.findOne(projectId);
+  projectPromise.then((project) => {
+    if (project == undefined) {
+      res.status(404).send("No project found for id " + projectId);
+      return;
+    }
+
+    if (task.projects == undefined) {
+      task.projects = [];
+    }
+    task.projects.push(project);
+
+    console.log("New object before saving: " + JSON.stringify(task));
+
+    let savedEntity = taskRepository.save(task).then((savedTask) => {
+
+      console.log("Saving done.");
+      console.log("savedTask: " + JSON.stringify(savedTask));
+
+      // prevent cycles during JSON.stringify()
+      let resultTask: Task = {
+        id: -1,
+        name: "",
+        description: "",
+        state: TaskState.UNKNOWN,
+        projects: [],
+      };
+      resultTask.id = savedTask.id;
+      resultTask.name = savedTask.name;
+      resultTask.description = savedTask.description;
+      resultTask.state = savedTask.state;
+
+      console.log("New object after saving: " + JSON.stringify(resultTask));
+
+      res.send(resultTask);
     });
   });
 });
@@ -122,10 +170,10 @@ taskRouter.get("/:id", async function (req, res, next) {
   const repository = getManager().getRepository(Task);
 
   // load all entities
-  const tasks = await repository.findOne(req.params.id);
+  const task = await repository.findOne(req.params.id);
 
   // return loaded entities
-  res.send(tasks);
+  res.send(task);
 });
 
 // Delete

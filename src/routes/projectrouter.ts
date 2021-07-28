@@ -3,6 +3,7 @@ import "reflect-metadata";
 
 import { Project } from "../entity/Project";
 import { getManager } from "typeorm";
+import { Task } from "../entity/Task";
 
 var projectRouter = express.Router();
 
@@ -47,10 +48,10 @@ projectRouter.get("/:id", async function (req, res, next) {
   const repository = getManager().getRepository(Project);
 
   // load all entities
-  const projects = await repository.findOne(req.params.id);
+  const project = await repository.findOne(req.params.id);
 
   // return loaded entities
-  res.send(projects);
+  res.send(project);
 });
 
 // Delete
@@ -60,11 +61,38 @@ projectRouter.delete("/delete/:id", async function (req, res, next) {
   // get a repository to perform operations
   const repository = getManager().getRepository(Project);
 
-  // delete entity
-  const deletionReport = await repository.delete(req.params.id);
+  const project = await repository.findOne(req.params.id);
 
-  // return loaded entities
-  res.send(deletionReport);
+  if (project) {
+    console.log("Project found for project id " + req.params.id);
+
+    let tasks = await project.tasks;
+    if (tasks) {
+      console.log("Tasks found for project id " + req.params.id);
+
+      const taskRepository = getManager().getRepository(Task);
+      for (let task of tasks) {
+        console.log("Trying to find task " + JSON.stringify(task));
+        let foundTask = await taskRepository.findOne(task.id);
+        if (foundTask) {
+          console.log("Task found " + JSON.stringify(foundTask));
+          console.log("Trying to delete task " + JSON.stringify(foundTask));
+          await taskRepository.delete(foundTask);
+          console.log("Task " + JSON.stringify(foundTask) + " deleted!");
+        }
+      }
+    }
+
+    // delete entity
+    console.log("Deleting project " + req.params.id + " ...");
+    const deletionReport = await repository.delete(req.params.id);
+    console.log("Deleting project " + req.params.id + " done");
+
+    // return loaded entities
+    res.send(deletionReport);
+  } else {
+    res.status(403).send("No project found for id " + req.params.id);
+  }
 });
 
 export default projectRouter;

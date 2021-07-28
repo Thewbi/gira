@@ -7,6 +7,10 @@ import {
 } from "typeorm";
 import { Project } from "./Project";
 
+export enum TaskState {
+  UNKNOWN = "UNKNOWN",
+}
+
 @Entity("task")
 export class Task {
   @PrimaryGeneratedColumn()
@@ -17,6 +21,9 @@ export class Task {
 
   @Column()
   description: string;
+
+  @Column()
+  state: string;
 
   @ManyToMany((type) => Project, (project) => project.tasks, {
     cascade: true,
